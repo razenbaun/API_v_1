@@ -1,12 +1,14 @@
 from tortoise import fields, Tortoise
 from tortoise.models import Model
 
+
 class Campus(Model):
     campus_id = fields.IntField(pk=True)
     campus_number = fields.IntField()
     address = fields.CharField(max_length=255)
 
     classrooms = fields.ReverseRelation["Classroom"]
+
 
 class Classroom(Model):
     classroom_id = fields.IntField(pk=True)
@@ -15,12 +17,14 @@ class Classroom(Model):
 
     computers = fields.ReverseRelation["Computer"]
 
+
 class Computer(Model):
     computer_id = fields.IntField(pk=True)
     computer_ip = fields.CharField(max_length=15)
     classroom = fields.ForeignKeyField("models.Classroom", related_name="computers")
 
     problems = fields.ReverseRelation["Problem"]
+
 
 class User(Model):
     user_id = fields.IntField(pk=True)
@@ -29,6 +33,7 @@ class User(Model):
     admin = fields.BooleanField(default=False)
 
     problems = fields.ReverseRelation["Problem"]
+
 
 class Problem(Model):
     problem_id = fields.IntField(pk=True)
@@ -39,6 +44,7 @@ class Problem(Model):
     active = fields.BooleanField(default=True)
     status = fields.CharField(max_length=50, default="Pending")
 
+
 async def init():
     await Tortoise.init(
         db_url="sqlite://db.sqlite3",
@@ -46,6 +52,8 @@ async def init():
     )
     await Tortoise.generate_schemas()
 
+
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(init())

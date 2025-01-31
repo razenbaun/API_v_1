@@ -21,10 +21,6 @@ class CampusUpdateSchema(BaseModel):
     address: Optional[str] = None
 
 
-from pydantic import BaseModel
-from typing import Optional
-
-
 class ClassroomSchema(BaseModel):
     classroom_id: int
     classroom_number: int
@@ -42,3 +38,74 @@ class ClassroomCreateSchema(BaseModel):
 class ClassroomUpdateSchema(BaseModel):
     classroom_number: Optional[int] = None
     campus_id: Optional[int] = None
+
+
+class ComputerSchema(BaseModel):
+    computer_id: int
+    computer_ip: str
+    classroom_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class ComputerCreateSchema(BaseModel):
+    computer_ip: str
+    classroom_id: int
+
+
+class ComputerUpdateSchema(BaseModel):
+    computer_ip: Optional[str] = None
+    classroom_id: Optional[int] = None
+
+
+class UserSchema(BaseModel):
+    user_id: int
+    login: str
+    admin: bool
+
+    class Config:
+        from_attributes = True
+
+
+class UserCreateSchema(BaseModel):
+    login: str
+    password: str
+    admin: Optional[bool] = False
+
+
+class UserUpdateSchema(BaseModel):
+    login: Optional[str] = None
+    password: Optional[str] = None
+    admin: Optional[bool] = None
+
+
+class ProblemSchema(BaseModel):
+    problem_id: int
+    description: str
+    img: Optional[bytes] = None
+    active: bool
+    status: str
+    computer_id: int
+    user_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class ProblemCreateSchema(BaseModel):
+    description: str
+    img: Optional[bytes] = None
+    active: bool = True
+    status: str = "Pending"
+    computer_id: int
+    user_id: int
+
+
+class ProblemUpdateSchema(BaseModel):
+    description: Optional[str] = None
+    img: Optional[bytes] = None
+    active: Optional[bool] = None
+    status: Optional[str] = None
+    computer_id: Optional[int] = None
+    user_id: Optional[int] = None

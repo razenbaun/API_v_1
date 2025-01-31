@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from app.models import Classroom
 from app.schemas import ClassroomSchema, ClassroomCreateSchema, ClassroomUpdateSchema
+from app.models import Computer
+from app.schemas import ComputerSchema
 
 router = APIRouter(prefix="/classrooms", tags=["Classrooms"])
 
@@ -39,3 +41,14 @@ async def delete_classroom(classroom_id: int):
 
     await classroom.delete()
     return {"message": "Classroom deleted successfully"}
+
+
+# Получить все компьютеры, принадлежащие аудитории по ID
+@router.get("/{classroom_id}/computers", response_model=list[ComputerSchema])
+async def get_computers_by_classroom(classroom_id: int):
+    classroom = await Classroom.get_or_none(classroom_id=classroom_id)
+    if not classroom:
+        raise HTTPException(status_code=404, detail="Classroom not found")
+
+    computers = await classroom.computers.all()
+    return computers
