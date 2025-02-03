@@ -84,7 +84,6 @@ class UserUpdateSchema(BaseModel):
 class ProblemSchema(BaseModel):
     problem_id: int
     description: str
-    img: Optional[bytes] = None
     active: bool
     status: str
     computer_id: int
@@ -110,3 +109,6 @@ class ProblemUpdateSchema(BaseModel):
     status: Optional[str] = None
     computer_id: Optional[int] = None
     user_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
