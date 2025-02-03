@@ -44,6 +44,7 @@ class ComputerSchema(BaseModel):
     computer_id: int
     computer_ip: str
     classroom_id: int
+    status: str
 
     class Config:
         from_attributes = True

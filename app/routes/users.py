@@ -14,6 +14,10 @@ async def get_users():
 # Создать пользователя
 @router.post("/", response_model=UserSchema)
 async def create_user(user_data: UserCreateSchema):
+    existing_user = await User.get_or_none(login=user_data.login)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Login already in use")
+
     user = await User.create(**user_data.dict())
     return user
 

@@ -1,5 +1,7 @@
 from tortoise import fields, Tortoise
 from tortoise.models import Model
+from tortoise.signals import post_save, post_delete
+from typing import Optional
 
 
 class Campus(Model):
@@ -22,6 +24,7 @@ class Computer(Model):
     computer_id = fields.IntField(pk=True)
     computer_ip = fields.CharField(max_length=15)
     classroom = fields.ForeignKeyField("models.Classroom", related_name="computers")
+    status = fields.CharField(max_length=50, default="")
 
     problems = fields.ReverseRelation["Problem"]
 
@@ -43,6 +46,35 @@ class Problem(Model):
     img = fields.BinaryField(null=True)
     active = fields.BooleanField(default=True)
     status = fields.CharField(max_length=50, default="Pending")
+
+
+@post_save(Problem)
+async def update_computer_status(model_class, instance, created, using_db, update_fields):
+    computer = await instance.computer
+
+    if instance.active:
+        computer.status = instance.status
+    else:
+        active_problem = await Problem.filter(computer=computer, active=True).first()
+        if active_problem:
+            computer.status = active_problem.status
+        else:
+            computer.status = ""
+
+    await computer.save()
+
+
+@post_delete(Problem)
+async def reset_computer_status(model_class, instance, using_db):
+    computer = await instance.computer
+    active_problem = await Problem.filter(computer=computer, active=True).first()
+
+    if active_problem:
+        computer.status = active_problem.status
+    else:
+        computer.status = ""
+
+    await computer.save()
 
 
 async def init():

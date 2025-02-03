@@ -8,7 +8,16 @@ router = APIRouter(prefix="/computers", tags=["Computers"])
 # Получить все компьютеры
 @router.get("/", response_model=list[ComputerSchema])
 async def get_computers():
-    return await Computer.all()
+    return await Computer.all().prefetch_related("problems")
+
+
+# Получить компьютер по ID
+@router.get("/{computer_id}", response_model=ComputerSchema)
+async def get_computer_by_id(computer_id: int):
+    computer = await Computer.get_or_none(computer_id=computer_id).prefetch_related("problems")
+    if not computer:
+        raise HTTPException(status_code=404, detail="Computer not found")
+    return computer
 
 
 # Создать компьютер
@@ -18,7 +27,6 @@ async def create_computer(computer_data: ComputerCreateSchema):
     return computer
 
 
-# Обновить компьютер по ID
 @router.put("/{computer_id}", response_model=ComputerSchema)
 async def update_computer(computer_id: int, computer_data: ComputerUpdateSchema):
     computer = await Computer.get_or_none(computer_id=computer_id)
