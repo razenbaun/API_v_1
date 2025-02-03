@@ -57,13 +57,34 @@ async def create_problem(
 
 
 # Обновить проблему по ID
-@router.put("/{problem_id}", response_model=ProblemUpdateSchema)
-async def update_problem(problem_id: int, problem_data: ProblemUpdateSchema):
+@router.put("/{problem_id}", response_model=ProblemSchema)
+async def update_problem(
+        problem_id: int,
+        description: str = None,
+        active: bool = None,
+        status: str = None,
+        computer_id: int = None,
+        user_id: int = None,
+        img: UploadFile = File(None)
+):
     problem = await Problem.get_or_none(problem_id=problem_id)
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
 
-    await problem.update_from_dict(problem_data.dict(exclude_unset=True))
+    if img:
+        problem.img = await save_image(img)
+
+    if description is not None:
+        problem.description = description
+    if active is not None:
+        problem.active = active
+    if status is not None:
+        problem.status = status
+    if computer_id is not None:
+        problem.computer_id = computer_id
+    if user_id is not None:
+        problem.user_id = user_id
+
     await problem.save()
     return problem
 
