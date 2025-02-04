@@ -62,6 +62,7 @@ class ComputerUpdateSchema(BaseModel):
 
 class UserSchema(BaseModel):
     user_id: int
+    email: str
     login: str
     admin: bool
 
@@ -70,12 +71,14 @@ class UserSchema(BaseModel):
 
 
 class UserCreateSchema(BaseModel):
+    email: str
     login: str
     password: str
     admin: Optional[bool] = False
 
 
 class UserUpdateSchema(BaseModel):
+    email: str
     login: Optional[str] = None
     password: Optional[str] = None
     admin: Optional[bool] = None

@@ -32,6 +32,7 @@ class Computer(Model):
 class User(Model):
     user_id = fields.IntField(pk=True)
     login = fields.CharField(max_length=50, unique=True)
+    email = fields.CharField(max_length=40, unique=True)
     password = fields.CharField(max_length=255)
     admin = fields.BooleanField(default=False)
 
