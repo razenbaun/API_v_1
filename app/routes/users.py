@@ -43,3 +43,13 @@ async def delete_user(user_id: int):
 
     await user.delete()
     return {"message": "User deleted successfully"}
+
+
+# Получить пользователя по ID
+@router.get("/{user_id}", response_model=UserSchema)
+async def get_user_by_id(user_id: int):
+    user = await User.get_or_none(user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user
