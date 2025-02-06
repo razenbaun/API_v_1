@@ -85,6 +85,11 @@ class UserUpdateSchema(BaseModel):
     admin: Optional[bool] = None
 
 
+class AuthRequest(BaseModel):
+    login: str
+    password: str
+
+
 class ProblemSchema(BaseModel):
     problem_id: int
     description: str

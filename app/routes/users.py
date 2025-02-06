@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from app.models import User
-from app.schemas import UserSchema, UserCreateSchema, UserUpdateSchema
+from app.schemas import UserSchema, UserCreateSchema, UserUpdateSchema, AuthRequest
+from passlib.context import CryptContext
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -18,7 +19,13 @@ async def create_user(user_data: UserCreateSchema):
     if existing_user:
         raise HTTPException(status_code=400, detail="Login already in use")
 
-    user = await User.create(**user_data.dict())
+    hashed_password = pwd_context.hash(user_data.password)
+    user = await User.create(
+        email=user_data.email,
+        login=user_data.login,
+        password=hashed_password,
+        admin=user_data.admin
+    )
     return user
 
 
@@ -29,9 +36,15 @@ async def update_user(user_id: int, user_data: UserUpdateSchema):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    await user.update_from_dict(user_data.dict(exclude_unset=True))
+    update_data = user_data.dict(exclude_unset=True)
+
+    if "password" in update_data:
+        update_data["password"] = pwd_context.hash(update_data["password"])
+
+    await user.update_from_dict(update_data)
     await user.save()
     return user
+
 
 
 # Удалить пользователя по ID
@@ -53,3 +66,18 @@ async def get_user_by_id(user_id: int):
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
+
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+@router.post("/auth")
+async def authenticate_user(auth_data: AuthRequest):
+    user = await User.get_or_none(login=auth_data.login)
+    if not user:
+        return {"success": False, "message": "Логин не существует"}
+
+    if not pwd_context.verify(auth_data.password, user.password):
+        return {"success": False, "message": "Пароль неверный"}
+
+    return {"success": True, "message": "Успех"}
