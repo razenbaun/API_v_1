@@ -84,3 +84,13 @@ async def authenticate_user(auth_data: AuthRequest):
         return {"success": False, "message": "Пароль неверный"}
 
     return {"success": True, "message": "Успех"}
+
+
+# Получить пользователя по логину
+@router.get("/login/{login}", response_model=UserSchema)
+async def get_user_by_login(login: str):
+    user = await User.get_or_none(login=login)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user

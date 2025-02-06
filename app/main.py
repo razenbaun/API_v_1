@@ -4,7 +4,7 @@ from app.routes import campus, classrooms, computers, users, problems
 
 app = FastAPI(title="Campus Management API")
 
-# tasks
+
 # taskkill /PID 10416 /F
 # netstat -ano | findstr :8080
 # uvicorn app.main:app --host 127.0.0.1 --port 8080 --reload
