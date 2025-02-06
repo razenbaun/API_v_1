@@ -5,6 +5,8 @@ from passlib.context import CryptContext
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 # Получить всех пользователей
 @router.get("/", response_model=list[UserSchema])
@@ -46,7 +48,6 @@ async def update_user(user_id: int, user_data: UserUpdateSchema):
     return user
 
 
-
 # Удалить пользователя по ID
 @router.delete("/{user_id}")
 async def delete_user(user_id: int):
@@ -66,9 +67,6 @@ async def get_user_by_id(user_id: int):
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
-
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @router.post("/auth")
