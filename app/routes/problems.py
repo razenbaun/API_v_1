@@ -11,8 +11,13 @@ router = APIRouter(prefix="/problems", tags=["Problems"])
 
 # Получить все проблемы
 @router.get("/", response_model=list[ProblemSchema])
-async def get_problems():
-    return await Problem.all()
+async def get_problems(computer_id: int = None, user_id: int = None):
+    query = Problem.all()
+    if computer_id is not None:
+        query = query.filter(computer_id=computer_id)
+    if user_id is not None:
+        query = query.filter(user_id=user_id)
+    return await query
 
 
 # Получить проблему по ID
