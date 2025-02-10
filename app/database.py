@@ -1,8 +1,13 @@
+import os
+
 from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
 from fastapi import FastAPI
 
-DB_URL = "sqlite://db.sqlite3"
+DB_URL = os.getenv("DATABASE_URL")
+
+if not DB_URL:
+    raise ValueError("DATABASE_URL is not set in environment variables!")
 
 
 async def init_db():

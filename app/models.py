@@ -44,7 +44,7 @@ class Problem(Model):
     computer = fields.ForeignKeyField("models.Computer", related_name="problems")
     user = fields.ForeignKeyField("models.User", related_name="problems")
     description = fields.TextField()
-    img = fields.BinaryField(null=True)
+    img = fields.TextField(null=True)
     active = fields.BooleanField(default=True)
     status = fields.CharField(max_length=50, default="Pending")
 
@@ -76,17 +76,3 @@ async def reset_computer_status(model_class, instance, using_db):
         computer.status = ""
 
     await computer.save()
-
-
-async def init():
-    await Tortoise.init(
-        db_url="sqlite://db.sqlite3",
-        modules={"models": [__name__]}
-    )
-    await Tortoise.generate_schemas()
-
-
-if __name__ == "__main__":
-    import asyncio
-
-    asyncio.run(init())
