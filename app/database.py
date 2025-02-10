@@ -4,7 +4,7 @@ from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
 from fastapi import FastAPI
 
-DB_URL = os.getenv("DATABASE_URL")
+DB_URL = os.getenv("DATABASE_URL", "").replace("postgresql://", "postgres://")
 
 if not DB_URL:
     raise ValueError("DATABASE_URL is not set in environment variables!")
