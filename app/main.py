@@ -18,8 +18,8 @@ async def startup():
 
 app.include_router(campus.router)
 app.include_router(classrooms.router)
-app.include_router(devices.router)
 app.include_router(places.router)
+app.include_router(devices.router)
 app.include_router(users.router)
 app.include_router(problems.router)
 
