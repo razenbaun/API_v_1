@@ -40,24 +40,47 @@ class ClassroomUpdateSchema(BaseModel):
     campus_id: Optional[int] = None
 
 
-class ComputerSchema(BaseModel):
-    computer_id: int
-    computer_ip: str
+class PlaceSchema(BaseModel):
+    place_id: int
+    x: int
+    y: int
     classroom_id: int
-    status: str
 
     class Config:
         from_attributes = True
 
 
-class ComputerCreateSchema(BaseModel):
-    computer_ip: str
+class PlaceCreateSchema(BaseModel):
+    x: int
+    y: int
     classroom_id: int
 
 
-class ComputerUpdateSchema(BaseModel):
-    computer_ip: Optional[str] = None
+class PlaceUpdateSchema(BaseModel):
+    x: Optional[int] = None
+    y: Optional[int] = None
     classroom_id: Optional[int] = None
+
+
+class DeviceSchema(BaseModel):
+    device_id: int
+    place_id: int
+    status: str
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class DeviceCreateSchema(BaseModel):
+    place_id: int
+    description: Optional[str] = None
+
+
+class DeviceUpdateSchema(BaseModel):
+    place_id: Optional[int] = None
+    status: Optional[str] = None
+    description: Optional[str] = None
 
 
 class UserSchema(BaseModel):
@@ -95,8 +118,9 @@ class ProblemSchema(BaseModel):
     description: str
     active: bool
     status: str
-    computer_id: int
+    device_id: int
     user_id: int
+    img: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -104,19 +128,19 @@ class ProblemSchema(BaseModel):
 
 class ProblemCreateSchema(BaseModel):
     description: str
-    img: Optional[bytes] = None
+    img: Optional[str] = None
     active: bool = True
     status: str = "Pending"
-    computer_id: int
+    device_id: int
     user_id: int
 
 
 class ProblemUpdateSchema(BaseModel):
     description: Optional[str] = None
-    img: Optional[bytes] = None
+    img: Optional[str] = None
     active: Optional[bool] = None
     status: Optional[str] = None
-    computer_id: Optional[int] = None
+    device_id: Optional[int] = None
     user_id: Optional[int] = None
 
     class Config:

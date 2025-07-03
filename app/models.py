@@ -17,14 +17,23 @@ class Classroom(Model):
     classroom_number = fields.IntField()
     campus = fields.ForeignKeyField("models.Campus", related_name="classrooms")
 
-    computers = fields.ReverseRelation["Computer"]
+    places = fields.ReverseRelation["Place"]
 
 
-class Computer(Model):
-    computer_id = fields.IntField(pk=True)
-    computer_ip = fields.CharField(max_length=15)
-    classroom = fields.ForeignKeyField("models.Classroom", related_name="computers")
+class Place(Model):
+    place_id = fields.IntField(pk=True)
+    x = fields.IntField()
+    y = fields.IntField()
+    classroom = fields.ForeignKeyField("models.Classroom", related_name="places")
+
+    devices = fields.ReverseRelation["Device"]
+
+
+class Device(Model):
+    device_id = fields.IntField(pk=True)
+    place = fields.ForeignKeyField("models.Place", related_name="devices")
     status = fields.CharField(max_length=50, default="")
+    description = fields.CharField(max_length=255, null=True)
 
     problems = fields.ReverseRelation["Problem"]
 
@@ -41,7 +50,7 @@ class User(Model):
 
 class Problem(Model):
     problem_id = fields.IntField(pk=True)
-    computer = fields.ForeignKeyField("models.Computer", related_name="problems")
+    device = fields.ForeignKeyField("models.Device", related_name="problems")
     user = fields.ForeignKeyField("models.User", related_name="problems")
     description = fields.TextField()
     img = fields.TextField(null=True)
@@ -50,29 +59,29 @@ class Problem(Model):
 
 
 @post_save(Problem)
-async def update_computer_status(model_class, instance, created, using_db, update_fields):
-    computer = await instance.computer
+async def update_device_status(model_class, instance, created, using_db, update_fields):
+    device = await instance.device
 
     if instance.active:
-        computer.status = instance.status
+        device.status = instance.status
     else:
-        active_problem = await Problem.filter(computer=computer, active=True).first()
+        active_problem = await Problem.filter(device=device, active=True).first()
         if active_problem:
-            computer.status = active_problem.status
+            device.status = active_problem.status
         else:
-            computer.status = ""
+            device.status = ""
 
-    await computer.save()
+    await device.save()
 
 
 @post_delete(Problem)
-async def reset_computer_status(model_class, instance, using_db):
-    computer = await instance.computer
-    active_problem = await Problem.filter(computer=computer, active=True).first()
+async def reset_device_status(model_class, instance, using_db):
+    device = await instance.device
+    active_problem = await Problem.filter(device=device, active=True).first()
 
     if active_problem:
-        computer.status = active_problem.status
+        device.status = active_problem.status
     else:
-        computer.status = ""
+        device.status = ""
 
-    await computer.save()
+    await device.save()

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.database import init_db
-from app.routes import campus, classrooms, computers, users, problems
+from app.routes import campus, classrooms, devices, users, problems, places
 
 app = FastAPI(title="Campus Management API")
 
@@ -18,7 +18,8 @@ async def startup():
 
 app.include_router(campus.router)
 app.include_router(classrooms.router)
-app.include_router(computers.router)
+app.include_router(devices.router)
+app.include_router(places.router)
 app.include_router(users.router)
 app.include_router(problems.router)
 
