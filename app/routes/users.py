@@ -35,6 +35,19 @@ async def send_password_email(email: str, password: str):
         print(f"Error sending email: {e}")
 
 
+@router.post("/send-password/{email}")
+async def send_password_to_email(
+        email: EmailStr,
+        background_tasks: BackgroundTasks
+):
+    user = await User.get_or_none(email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User with this email not found")
+
+    background_tasks.add_task(send_password_email, email, user.password)
+    return {"message": "Password has been sent to your email"}
+
+
 # Получить всех пользователей
 @router.get("/", response_model=list[UserSchema])
 async def get_users():
