@@ -2,10 +2,49 @@ from fastapi import APIRouter, HTTPException
 from app.models import User
 from app.schemas import UserSchema, UserCreateSchema, UserUpdateSchema, AuthRequest
 from passlib.context import CryptContext
+from fastapi import BackgroundTasks
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from pydantic import EmailStr
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+conf = ConnectionConfig(
+    MAIL_USERNAME="devicesaccapi@gmail.com",
+    MAIL_PASSWORD="kmkM*u90J9_{",
+    MAIL_FROM="devicesaccapi@gmail.com",
+    MAIL_PORT=587,
+    MAIL_SERVER="smtp.gmail.com",
+    MAIL_TLS=True,
+    MAIL_SSL=False,
+    USE_CREDENTIALS=True
+)
+
+
+async def send_password_email(email: str, password: str):
+    message = MessageSchema(
+        subject="Ваш пароль от системы",
+        recipients=[email],
+        body=f"Ваш пароль: {password}",
+        subtype="plain"
+    )
+
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+
+@router.post("/send-password/{email}")
+async def send_password_to_email(
+        email: EmailStr,
+        background_tasks: BackgroundTasks
+):
+    user = await User.get_or_none(email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User with this email not found")
+
+    background_tasks.add_task(send_password_email, email, user.password)
+    return {"message": "Password has been sent to your email"}
 
 
 # Получить всех пользователей
