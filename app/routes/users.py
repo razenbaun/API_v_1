@@ -5,15 +5,20 @@ from email.message import EmailMessage
 from app.models import User
 from app.schemas import UserSchema, UserCreateSchema, UserUpdateSchema, AuthRequest
 from passlib.context import CryptContext
+import os
+from dotenv import load_dotenv
+import ssl
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+load_dotenv()
+
 EMAIL_CONFIG = {
-    "MAIL_USERNAME": "devicesaccapi@gmail.com",
-    "MAIL_PASSWORD": "kmkM*u90J9_{",
-    "MAIL_FROM": "devicesaccapi@gmail.com",
+    "MAIL_USERNAME": os.getenv("GMAIL_USER"),
+    "MAIL_PASSWORD": os.getenv("GMAIL_APP_PASSWORD"),
+    "MAIL_FROM": os.getenv("GMAIL_FROM", "devicesaccapi@gmail.com"),
     "MAIL_PORT": 587,
     "MAIL_SERVER": "smtp.gmail.com"
 }
@@ -27,12 +32,20 @@ async def send_password_email(email: str, password: str):
         msg['To'] = email
         msg.set_content(f"Ваш пароль: {password}")
 
+        context = ssl.create_default_context()
+
         with smtplib.SMTP(EMAIL_CONFIG["MAIL_SERVER"], EMAIL_CONFIG["MAIL_PORT"]) as server:
-            server.starttls()
+            server.ehlo()
+            server.starttls(context=context)
             server.login(EMAIL_CONFIG["MAIL_USERNAME"], EMAIL_CONFIG["MAIL_PASSWORD"])
             server.send_message(msg)
+
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"SMTP Error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to send email: {str(e)}"
+        )
 
 
 @router.post("/send-password/{email}")
