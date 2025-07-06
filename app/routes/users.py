@@ -8,6 +8,8 @@ from passlib.context import CryptContext
 import os
 from dotenv import load_dotenv
 import ssl
+import secrets
+import string
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -55,10 +57,15 @@ async def send_password_to_email(
 ):
     user = await User.get_or_none(email=email)
     if not user:
-        raise HTTPException(status_code=404, detail="User with this email not found")
+        raise HTTPException(status_code=404, detail="User not found")
 
-    background_tasks.add_task(send_password_email, email, user.password)
-    return {"message": "Password has been sent to your email"}
+    temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+
+    user.password = pwd_context.hash(temp_password)
+    await user.save()
+
+    background_tasks.add_task(send_password_email, email, temp_password)
+    return {"message": "Temporary password has been sent"}
 
 
 # Получить всех пользователей
