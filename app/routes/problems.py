@@ -7,7 +7,6 @@ from app.schemas import ProblemSchema, ProblemCreateSchema, ProblemUpdateSchema
 router = APIRouter(prefix="/problems", tags=["Problems"])
 
 
-# Получить все проблемы
 @router.get("/", response_model=list[ProblemSchema])
 async def get_problems(device_id: int = None, user_id: int = None):
     query = Problem.all().prefetch_related("device", "user")
@@ -18,7 +17,6 @@ async def get_problems(device_id: int = None, user_id: int = None):
     return await query
 
 
-# Получить проблему по ID
 @router.get("/{problem_id}", response_model=ProblemSchema)
 async def get_problem(problem_id: int):
     problem = await Problem.get_or_none(problem_id=problem_id).prefetch_related("device", "user")
@@ -27,12 +25,10 @@ async def get_problem(problem_id: int):
     return problem
 
 
-async def save_image(img: UploadFile) -> str:
-    img_data = await img.read()
-    return img_data.decode('latin-1')  # Преобразуем байты в строку для хранения
+async def save_image(img: UploadFile) -> bytes:
+    return await img.read()
 
 
-# Создать проблему
 @router.post("/", response_model=ProblemSchema)
 async def create_problem(
         device_id: int,
@@ -42,7 +38,6 @@ async def create_problem(
         active: bool = True,
         status: str = "Pending",
 ):
-    # Проверяем существование устройства
     device = await Device.get_or_none(device_id=device_id)
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
@@ -51,20 +46,19 @@ async def create_problem(
     if img:
         img_data = await save_image(img)
 
-    problem_data = ProblemCreateSchema(
-        description=description,
-        img=img_data,
-        active=active,
-        status=status,
-        device_id=device_id,
-        user_id=user_id
-    )
+    problem_data = {
+        "description": description,
+        "img": img_data,
+        "active": active,
+        "status": status,
+        "device_id": device_id,
+        "user_id": user_id
+    }
 
-    problem = await Problem.create(**problem_data.dict())
+    problem = await Problem.create(**problem_data)
     return problem
 
 
-# Обновить проблему по ID
 @router.put("/{problem_id}", response_model=ProblemSchema)
 async def update_problem(
         problem_id: int,
@@ -100,7 +94,6 @@ async def update_problem(
     return problem
 
 
-# Удалить проблему по ID
 @router.delete("/{problem_id}")
 async def delete_problem(problem_id: int):
     problem = await Problem.get_or_none(problem_id=problem_id)
@@ -117,7 +110,4 @@ async def get_problem_image(problem_id: int):
     if not problem or not problem.img:
         raise HTTPException(status_code=404, detail="Image not found")
 
-    # Преобразуем строку обратно в байты
-    image_bytes = problem.img.encode('latin-1')
-    image_file = BytesIO(image_bytes)
-    return StreamingResponse(image_file, media_type="image/jpeg")
+    return StreamingResponse(BytesIO(problem.img), media_type="image/jpeg")
