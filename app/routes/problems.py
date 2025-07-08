@@ -110,4 +110,5 @@ async def get_problem_image(problem_id: int):
     if not problem or not problem.img:
         raise HTTPException(status_code=404, detail="Image not found")
 
-    return StreamingResponse(BytesIO(problem.img), media_type="image/jpeg")
+    image_bytes = problem.img.encode('latin-1')
+    return StreamingResponse(BytesIO(image_bytes), media_type="image/jpeg")
