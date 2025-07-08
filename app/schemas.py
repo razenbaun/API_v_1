@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
 
 
 class CampusSchema(BaseModel):
@@ -120,28 +121,41 @@ class ProblemSchema(BaseModel):
     status: str
     device_id: int
     user_id: int
-    img: Optional[str] = None
+    img: Optional[bytes] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat(),
+            bytes: lambda v: v.decode('latin-1') if v else None
+        }
 
 
 class ProblemCreateSchema(BaseModel):
     description: str
-    img: Optional[str] = None
+    img: Optional[bytes] = None
     active: bool = True
-    status: str = "Pending"
+    status: str = Field("Pending", pattern="^(Pending|In Progress|Resolved)$")
     device_id: int
     user_id: int
+
+    class Config:
+        json_encoders = {
+            bytes: lambda v: v.decode('latin-1') if v else None
+        }
 
 
 class ProblemUpdateSchema(BaseModel):
     description: Optional[str] = None
-    img: Optional[str] = None
+    img: Optional[bytes] = None
     active: Optional[bool] = None
-    status: Optional[str] = None
+    status: Optional[str] = Field(None, pattern="^(Pending|In Progress|Resolved)$")
     device_id: Optional[int] = None
     user_id: Optional[int] = None
 
     class Config:
-        from_attributes = True
+        json_encoders = {
+            bytes: lambda v: v.decode('latin-1') if v else None
+        }
