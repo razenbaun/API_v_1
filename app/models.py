@@ -53,7 +53,7 @@ class Problem(Model):
     device = fields.ForeignKeyField("models.Device", related_name="problems")
     user = fields.ForeignKeyField("models.User", related_name="problems")
     description = fields.TextField()
-    img = fields.TextField(null=True)
+    img = fields.BinaryField(null=True)
     active = fields.BooleanField(default=True)
     status = fields.CharField(max_length=50, default="Pending")
 
