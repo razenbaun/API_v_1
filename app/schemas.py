@@ -45,6 +45,7 @@ class PlaceSchema(BaseModel):
     place_id: int
     x: int
     y: int
+    placeType: str
     classroom_id: int
 
     class Config:
@@ -54,12 +55,14 @@ class PlaceSchema(BaseModel):
 class PlaceCreateSchema(BaseModel):
     x: int
     y: int
+    placeType: str = "standard"
     classroom_id: int
 
 
 class PlaceUpdateSchema(BaseModel):
     x: Optional[int] = None
     y: Optional[int] = None
+    placeType: Optional[str] = None
     classroom_id: Optional[int] = None
 
 

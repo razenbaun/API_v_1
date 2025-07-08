@@ -6,7 +6,6 @@ from tortoise.transactions import in_transaction
 router = APIRouter(prefix="/places", tags=["Places"])
 
 
-# Получить все места
 @router.get("/", response_model=list[PlaceSchema])
 async def get_places(classroom_id: int = None):
     query = Place.all().prefetch_related("classroom", "devices")
@@ -15,7 +14,6 @@ async def get_places(classroom_id: int = None):
     return await query
 
 
-# Получить место по ID
 @router.get("/{place_id}", response_model=PlaceSchema)
 async def get_place(place_id: int):
     place = await Place.get_or_none(place_id=place_id).prefetch_related("classroom", "devices")
@@ -24,15 +22,12 @@ async def get_place(place_id: int):
     return place
 
 
-# Создать новое место
 @router.post("/", response_model=PlaceSchema)
 async def create_place(place_data: PlaceCreateSchema):
-    # Проверяем существование аудитории
     classroom = await Classroom.get_or_none(classroom_id=place_data.classroom_id)
     if not classroom:
         raise HTTPException(status_code=404, detail="Classroom not found")
 
-    # Проверяем уникальность координат в аудитории
     existing_place = await Place.filter(
         classroom_id=place_data.classroom_id,
         x=place_data.x,
@@ -49,7 +44,6 @@ async def create_place(place_data: PlaceCreateSchema):
     return place
 
 
-# Обновить место по ID
 @router.put("/{place_id}", response_model=PlaceSchema)
 async def update_place(place_id: int, place_data: PlaceUpdateSchema):
     place = await Place.get_or_none(place_id=place_id)
@@ -58,7 +52,6 @@ async def update_place(place_id: int, place_data: PlaceUpdateSchema):
 
     update_data = place_data.dict(exclude_unset=True)
 
-    # Если обновляются координаты, проверяем их уникальность
     if 'x' in update_data or 'y' in update_data:
         x = update_data.get('x', place.x)
         y = update_data.get('y', place.y)

@@ -24,6 +24,7 @@ class Place(Model):
     place_id = fields.IntField(pk=True)
     x = fields.IntField()
     y = fields.IntField()
+    placeType = fields.CharField(max_length=50, default="standard")
     classroom = fields.ForeignKeyField("models.Classroom", related_name="places")
 
     devices = fields.ReverseRelation["Device"]
