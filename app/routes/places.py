@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from app.models import Place, Classroom, Device
 from app.schemas import PlaceSchema, PlaceCreateSchema, PlaceUpdateSchema, DeviceSchema
+from tortoise.transactions import in_transaction
 
 router = APIRouter(prefix="/places", tags=["Places"])
 
@@ -81,21 +82,17 @@ async def update_place(place_id: int, place_data: PlaceUpdateSchema):
 
 # Удалить место по ID
 @router.delete("/{place_id}")
-async def delete_place(place_id: int):
-    place = await Place.get_or_none(place_id=place_id)
-    if not place:
-        raise HTTPException(status_code=404, detail="Place not found")
+async def delete_place_with_devices(place_id: int):
+    async with in_transaction():
+        place = await Place.get_or_none(place_id=place_id)
+        if not place:
+            raise HTTPException(status_code=404, detail="Place not found")
 
-    # Исправленный способ проверки привязанных устройств
-    devices_count = await Device.filter(place_id=place_id).count()
-    if devices_count > 0:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Cannot delete place with {devices_count} attached devices"
-        )
+        await Device.filter(place_id=place_id).delete()
 
-    await place.delete()
-    return {"message": "Place deleted successfully"}
+        await place.delete()
+
+    return {"message": "Place and all attached devices were deleted successfully"}
 
 
 # Получить все устройства на месте
