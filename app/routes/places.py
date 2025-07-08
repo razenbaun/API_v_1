@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.models import Place, Classroom
+from app.models import Place, Classroom, Device
 from app.schemas import PlaceSchema, PlaceCreateSchema, PlaceUpdateSchema, DeviceSchema
 
 router = APIRouter(prefix="/places", tags=["Places"])
@@ -86,8 +86,8 @@ async def delete_place(place_id: int):
     if not place:
         raise HTTPException(status_code=404, detail="Place not found")
 
-    # Проверяем, есть ли привязанные устройства
-    devices_count = await place.devices.count()
+    # Исправленный способ проверки привязанных устройств
+    devices_count = await Device.filter(place_id=place_id).count()
     if devices_count > 0:
         raise HTTPException(
             status_code=400,
