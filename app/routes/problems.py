@@ -25,71 +25,41 @@ async def get_problem(problem_id: int):
     return problem
 
 
-async def save_image(img: UploadFile) -> bytes:
-    return await img.read()
-
-
 @router.post("/", response_model=ProblemSchema)
 async def create_problem(
-        device_id: int,
-        user_id: int,
-        description: str,
-        img: UploadFile = File(None),
-        active: bool = True,
-        status: str = "Pending",
+    problem_data: ProblemCreateSchema
 ):
-    device = await Device.get_or_none(device_id=device_id)
+    device = await Device.get_or_none(device_id=problem_data.device_id)
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
 
-    img_data = None
-    if img:
-        img_data = await save_image(img)
-
-    problem_data = {
-        "description": description,
-        "img": img_data,
-        "active": active,
-        "status": status,
-        "device_id": device_id,
-        "user_id": user_id
-    }
-
-    problem = await Problem.create(**problem_data)
+    problem = await Problem.create(
+        description=problem_data.description,
+        active=problem_data.active,
+        status=problem_data.status,
+        device_id=problem_data.device_id,
+        user_id=problem_data.user_id
+    )
     return problem
 
 
 @router.put("/{problem_id}", response_model=ProblemSchema)
 async def update_problem(
         problem_id: int,
-        description: str = None,
-        active: bool = None,
-        status: str = None,
-        device_id: int = None,
-        user_id: int = None,
-        img: UploadFile = File(None)
+        problem_data: ProblemUpdateSchema
 ):
     problem = await Problem.get_or_none(problem_id=problem_id)
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
 
-    if device_id is not None:
-        device = await Device.get_or_none(device_id=device_id)
+    update_data = problem_data.dict(exclude_unset=True)
+
+    if 'device_id' in update_data:
+        device = await Device.get_or_none(device_id=update_data['device_id'])
         if not device:
             raise HTTPException(status_code=404, detail="Device not found")
-        problem.device_id = device_id
 
-    if img:
-        problem.img = await save_image(img)
-    if description is not None:
-        problem.description = description
-    if active is not None:
-        problem.active = active
-    if status is not None:
-        problem.status = status
-    if user_id is not None:
-        problem.user_id = user_id
-
+    await problem.update_from_dict(update_data)
     await problem.save()
     return problem
 
@@ -102,13 +72,3 @@ async def delete_problem(problem_id: int):
 
     await problem.delete()
     return {"message": "Problem deleted successfully"}
-
-
-@router.get("/{problem_id}/image")
-async def get_problem_image(problem_id: int):
-    problem = await Problem.get_or_none(problem_id=problem_id)
-    if not problem or not problem.img:
-        raise HTTPException(status_code=404, detail="Image not found")
-
-    image_bytes = problem.img.encode('latin-1')
-    return StreamingResponse(BytesIO(image_bytes), media_type="image/jpeg")
