@@ -143,7 +143,7 @@ async def authenticate_user(auth_data: AuthRequest):
     if not pwd_context.verify(auth_data.password, user.password):
         return {"success": False, "message": "Пароль неверный"}
 
-    return {"success": True, "message": "Успех"}
+    return {"success": True, "message": "Успех", "user_id": user.user_id}
 
 
 # Получить пользователя по логину
